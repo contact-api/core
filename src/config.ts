@@ -1,5 +1,6 @@
 import type { EmailProvider } from "./types.js";
 import { ResendProvider } from "./providers/resend.js";
+import { NodemailerProvider } from "./providers/nodemailer.js";
 
 export interface Config {
   provider: EmailProvider | null;
@@ -23,8 +24,30 @@ function createProvider(): EmailProvider | null {
 
   if (providerName === "resend") {
     const apiKey = process.env["RESEND_API_KEY"];
-    if (!apiKey) return null;
-    return new ResendProvider(apiKey);
+    if (!apiKey) {
+      console.warn("RESEND_API_KEY missing for resend");
+      return null;
+    }
+
+    try { return new ResendProvider(apiKey); }
+    catch (e) {
+      console.error("Failed to initialize Resend provider:", e);
+      return null;
+    }
+  }
+
+  if (providerName === "nodemailer") {
+    const smtpConfig = process.env["SMTP_CONFIG"];
+    if (!smtpConfig) {
+      console.warn("SMTP_CONFIG missing for nodemailer");
+      return null;
+    }
+
+    try { return new NodemailerProvider(smtpConfig); }
+    catch (e) {
+      console.error("Failed to initialize Nodemailer provider:", e);
+      return null;
+    }
   }
 
   console.warn(`Unknown EMAIL_PROVIDER: "${providerName}"`);

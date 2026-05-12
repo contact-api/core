@@ -23,7 +23,7 @@ export default async (req: VercelRequest, res: VercelResponse): Promise<void> =>
     return;
   }
 
-  if(req.body["fax_number"]) {
+  if(typeof req.body?.fax_number === "string" ? req.body.fax_number.trim() : "") {
     console.warn("Honeypot triggered:", req.headers["x-forwarded-for"] ?? "unknown");
     res.json({ success: true, message: "Message sent successfully" });
     return;
@@ -42,7 +42,7 @@ export default async (req: VercelRequest, res: VercelResponse): Promise<void> =>
 
   const { rateLimited } = await checkRateLimit("contact-form-limit");
   if (rateLimited) {
-    res.status(429).json({ error: "Too many requests. Please try again later." });
+    res.status(429).json({ error: "Too many requests. Please try again later" });
     return;
   }
 
@@ -51,6 +51,6 @@ export default async (req: VercelRequest, res: VercelResponse): Promise<void> =>
     res.json({ success: true, message: "Message sent successfully" });
   } catch (error) {
     console.error("Email error:", error);
-    res.status(500).json({ error: "Message delivery failed. Please try again later." });
+    res.status(500).json({ error: "Message delivery failed. Please try again later" });
   }
 };

@@ -28,7 +28,12 @@ function createProvider(): EmailProvider | null {
       console.warn("RESEND_API_KEY missing for resend");
       return null;
     }
-    return new ResendProvider(apiKey);
+
+    try { return new ResendProvider(apiKey); }
+    catch (e) {
+      console.error("Failed to initialize Resend provider:", e);
+      return null;
+    }
   }
 
   if (providerName === "nodemailer") {
@@ -38,7 +43,11 @@ function createProvider(): EmailProvider | null {
       return null;
     }
 
-    return new NodemailerProvider(smtpConfig);
+    try { return new NodemailerProvider(smtpConfig); }
+    catch (e) {
+      console.error("Failed to initialize Nodemailer provider:", e);
+      return null;
+    }
   }
 
   console.warn(`Unknown EMAIL_PROVIDER: "${providerName}"`);

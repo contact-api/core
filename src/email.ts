@@ -20,14 +20,15 @@ export async function sendEmail(
   config: EmailConfig, 
   body: ContactBody
 ): Promise<void> {
-  const subjectLine = body.subject?.replace(/[\r\n]+/g, " ").trim() ?? "New message";
-  const fromLine = body.name ? `${body.name} <${body.email}>` : body.email;
+  const safeSubject = body.subject?.replace(/[\r\n]+/g, " ").trim() ?? "New message";
+  const safeName = body.name?.replace(/[\r\n]+/g, " ").trim();
+  const fromLine = safeName ? `${safeName} <${body.email}>` : body.email;
 
   const payload: EmailPayload = {
     from: config.from,
     to: config.to,
     replyTo: body.email,
-    subject: `Contact form: ${subjectLine}`,
+    subject: `Contact form: ${safeSubject}`,
     text: `From: ${fromLine}\n\n${body.message.trim()}`
   }
 

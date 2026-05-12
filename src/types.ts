@@ -3,6 +3,7 @@ export interface ContactBody {
   message: string;
   subject?: string;
   name?: string;
+  fax_number?: string;
 }
 
 export interface EmailPayload {

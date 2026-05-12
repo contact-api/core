@@ -114,7 +114,7 @@ describe("contact handler (index.ts)", () => {
     const res = makeRes();
     await handler(makeReq(), res);
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "Message delivery failed. Please try again later." });
+    expect(res.json).toHaveBeenCalledWith({ error: "Message delivery failed. Please try again later" });
     errorSpy.mockRestore();
   });
 });

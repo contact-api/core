@@ -1,4 +1,5 @@
 # Contact API
+
 Deployable **multi-provider** contact form API
 
 [![Tests](https://github.com/masonlet/contact-api/actions/workflows/ci.yml/badge.svg)](https://github.com/masonlet/contact-api/actions/workflows/ci.yml)
@@ -18,12 +19,12 @@ Deployable **multi-provider** contact form API
 
 ## Features
 - Single `POST /api/contact` endpoint - drop into any project.
-- Multi-provider support: Resend, Nodemailer (SMTP).
-- CORS support via `ALLOWED_ORIGINS` env var.
+- Multi-provider support: Resend and Nodemailer (SMTP).
+- CORS support via `ALLOWED_ORIGINS`.
 - Input validation with descriptive error responses.
 - Rate limiting via Vercel WAF to prevent spam and abuse.
-- Honeypot protection
-> **Note:** To utilize the honeypot, ensure your frontend includes a hidden input field named `[fax_number]` that remains empty during submission.
+- Honeypot protection.
+> **Note:** To utilize the honeypot, include a hidden input field named `fax_number` in your frontend and keep it empty when submitting the form.
 
 ## Usage
 ```js
@@ -58,8 +59,8 @@ await fetch("https://your-deployment.vercel.app/api/contact", {
 - Node.js 20+
 - Vercel
 - An email provider
-    - **Resend:** API key and verified domain
-    - **Nodemailer:** Valid SMTP settings (host, port, user, pass).
+    - **Resend:** API key and verified domain.
+    - **Nodemailer:** Valid SMTP settings (`host`, `port`, `auth.user`, `auth.pass`, and `secure` when needed).
 
 ### 1. Clone & Install
 ```bash
@@ -69,16 +70,16 @@ npm install
 ```
 
 ### 2. Configure `.env`
-Copy `.env.example` to `.env` and fill Environment Variables. All values are **required**.
+Copy `.env.example` to `.env` and fill Environment Variables. Shared values are **required**; provider-specific values depend on `EMAIL_PROVIDER`.
 
 | Variable          | Description |
 | ----------------- | ----------- |
 | `FROM_EMAIL`      | Sender address |
-| `TO_EMAIL`        | Recipients (comma-separated) |
-| `ALLOWED_ORIGINS` | CORS origins (comma-separated); empty blocks all requests. |
-| `EMAIL_PROVIDER`  | `resend` or `nodemailer`. |
-| `RESEND_API_KEY`  | Your Resend API key (using `resend` provider) |
-| `SMTP_CONFIG`     | JSON string of Nodemailer config (using `nodemailer` provider) |
+| `TO_EMAIL`        | Recipient email addresses, comma-separated. |
+| `ALLOWED_ORIGINS` | Allowed CORS origins, comma-separated. Leave empty to block all cross-origin requests. |
+| `EMAIL_PROVIDER`  | Email provider to use: `resend` or `nodemailer`. |
+| `RESEND_API_KEY`  | Resend API key, required when `EMAIL_PROVIDER=resend`. |
+| `SMTP_CONFIG`     | JSON string of Nodemailer SMTP config, required when `EMAIL_PROVIDER=nodemailer`. |
 
 ### Deploying
 
@@ -86,14 +87,14 @@ Copy `.env.example` to `.env` and fill Environment Variables. All values are **r
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/masonlet/contact-api&env=FROM_EMAIL,TO_EMAIL,ALLOWED_ORIGINS,EMAIL_PROVIDER,RESEND_API_KEY&envDescription[FROM_EMAIL]=Sender%20address%20(must%20be%20a%20verified%20Resend%20domain)&envDescription[TO_EMAIL]=Delivery%20address&envDescription[ALLOWED_ORIGINS]=Comma-separated%20list%20of%20allowed%20CORS%20origins&envDescription[EMAIL_PROVIDER]=resend&envDescription[RESEND_API_KEY]=Your%20Resend%20API%20key)
 
 #### Deploy with Nodemailer
-[![Deploy with Nodemailer](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/masonlet/contact-api&env=FROM_EMAIL,TO_EMAIL,ALLOWED_ORIGINS,EMAIL_PROVIDER,SMTP_CONFIG&envDescription[FROM_EMAIL]=Sender%20address%20(must%20be%20a%20verified%20Resend%20domain)&envDescription[TO_EMAIL]=Delivery%20address&envDescription[ALLOWED_ORIGINS]=Comma-separated%20list%20of%20allowed%20CORS%20origins&envDescription[EMAIL_PROVIDER]=nodemailer&envDescription[SMTP_CONFIG]=JSON%20string%20of%20SMTP%20settings)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/masonlet/contact-api&env=FROM_EMAIL,TO_EMAIL,ALLOWED_ORIGINS,EMAIL_PROVIDER,SMTP_CONFIG&envDescription[FROM_EMAIL]=Sender%20address%20accepted%20by%20your%20SMTP%20provider&envDescription[TO_EMAIL]=Delivery%20address&envDescription[ALLOWED_ORIGINS]=Comma-separated%20list%20of%20allowed%20CORS%20origins&envDescription[EMAIL_PROVIDER]=nodemailer&envDescription[SMTP_CONFIG]=JSON%20string%20of%20SMTP%20settings)
 
 ### Local Development
 ```bash
 npm run typecheck     # TypeScript type check
-npm run test          # Vitest check
-npm run test:watch    # Vitest watch mode
-npm run test:coverage # Vitest coverage mode
+npm run test          # Run Vitest tests
+npm run test:watch    # Run Vitest in watch mode
+npm run test:coverage # Run Vitest in coverage mode
 ```
 
 ## License

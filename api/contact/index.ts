@@ -23,7 +23,7 @@ export default async (req: VercelRequest, res: VercelResponse): Promise<void> =>
     return;
   }
 
-  if(req.body["fax_number"]) {
+  if(typeof req.body?.fax_number === "string" ? req.body.fax_number.trim() : "") {
     console.warn("Honeypot triggered:", req.headers["x-forwarded-for"] ?? "unknown");
     res.json({ success: true, message: "Message sent successfully" });
     return;

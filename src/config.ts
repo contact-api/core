@@ -24,7 +24,10 @@ function createProvider(): EmailProvider | null {
 
   if (providerName === "resend") {
     const apiKey = process.env["RESEND_API_KEY"];
-    if (!apiKey) return null;
+    if (!apiKey) {
+      console.warn("RESEND_API_KEY missing for resend");
+      return null;
+    }
     return new ResendProvider(apiKey);
   }
 
@@ -34,6 +37,7 @@ function createProvider(): EmailProvider | null {
       console.warn("SMTP_CONFIG missing for nodemailer");
       return null;
     }
+
     return new NodemailerProvider(smtpConfig);
   }
 

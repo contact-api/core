@@ -2,10 +2,10 @@
   "compilerOptions": {
     // Module/Target
     "target": "ESNext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "moduleDetection": "force",
-    "outDir": "./dist",
+    "allowImportingTsExtensions": true,
 
     // Core Strictness
     "strict": true,
@@ -51,7 +51,6 @@
   ],
   "exclude": [
     "dist/",
-    "node_modules/",
-    ".vercel/"
+    "node_modules/"
   ]
 }

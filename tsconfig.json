@@ -46,10 +46,7 @@
     "noEmit": true
   },
   "include": [
-    "./core/**/*.ts",
-    "./nodemailer/**/*.ts",
-    "./resend/**/*.ts",
-    "./vercel/**/*.ts",
+    "./src/**/*.ts",
     "./tests/**/*.ts",
   ],
   "exclude": [

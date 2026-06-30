@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import type { EmailProvider, ContactBody } from "../../src/types.js";
+import type { EmailProvider, EmailBody } from "../../src/types.js";
 import { getEmailConfig, sendEmail, type EmailConfig } from "../../src/email.js";
 
 const mockProvider: EmailProvider = {
@@ -13,7 +13,7 @@ const mockEmailConfig: EmailConfig = {
   to: ["to@test.com"]
 };
 
-const body: ContactBody = {
+const body: EmailBody = {
   email: "user@test.com",
   message: "Hello"
 };

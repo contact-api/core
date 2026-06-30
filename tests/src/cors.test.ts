@@ -1,87 +1,52 @@
-import { describe, it, expect, vi } from "vitest";
-import { setCorsHeaders } from "../../src/cors.js";
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { describe, it, expect } from "vitest";
+import { evaluateCors } from "../../src/cors.js";
+import type { ContactRequest } from "../../src/contact.js";
 
-const makeReq = (origin?: string, method = "POST") => ({
-  headers: { origin },
+const makeReq = (origin?: string, method = "POST"): ContactRequest => ({
   method,
-}) as unknown as VercelRequest;
+  headers: { origin },
+  body: undefined,
+});
 
-const makeRes = () => {
-  const headers: Record<string, string> = {};
-  return {
-    setHeader: vi.fn((k: string, v: string) => { headers[k] = v; }),
-    status: vi.fn().mockReturnThis(),
-    end: vi.fn(),
-    _headers: headers,
-  } as unknown as VercelResponse;
-};
-
-describe("setCorsHeaders", () => {
+describe("evaluateCors", () => {
   it("should always set X-Content-Type-Options", () => {
-    const req = makeReq();
-    const res = makeRes();
-    setCorsHeaders(req, res, []);
-    expect(res.setHeader).toHaveBeenCalledWith("X-Content-Type-Options", "nosniff");
+    const result = evaluateCors(makeReq(), []);
+    expect(result.headers["X-Content-Type-Options"]).toBe("nosniff");
   });
 
   it("should set CORS headers when origin is allowed", () => {
-    const req = makeReq("https://example.com");
-    const res = makeRes();
-    setCorsHeaders(req, res, ["https://example.com"]);
-    expect(res.setHeader).toHaveBeenCalledWith("Access-Control-Allow-Origin", "https://example.com");
-    expect(res.setHeader).toHaveBeenCalledWith("Access-Control-Allow-Methods", "POST, OPTIONS");
-    expect(res.setHeader).toHaveBeenCalledWith("Access-Control-Allow-Headers", "Content-Type");
+    const result = evaluateCors(makeReq("https://example.com"), ["https://example.com"]);
+    expect(result.headers["Access-Control-Allow-Origin"]).toBe("https://example.com");
+    expect(result.headers["Access-Control-Allow-Methods"]).toBe("POST, OPTIONS");
+    expect(result.headers["Access-Control-Allow-Headers"]).toBe("Content-Type");
+    expect(result.outcome).toBe("ok");
   });
 
   it("should not set CORS headers when origin is undefined", () => {
-    const req = makeReq(undefined);
-    const res = makeRes();
-    setCorsHeaders(req, res, ["https://example.com"]);
-    expect(res.setHeader).not.toHaveBeenCalledWith("Access-Control-Allow-Origin", expect.anything());
+    const result = evaluateCors(makeReq(undefined), ["https://example.com"]);
+    expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
   });
 
-  it("should not set CORS headers when origin is not allowed", () => {
-    const req = makeReq("https://other.com");
-    const res = makeRes();
-    setCorsHeaders(req, res, ["https://example.com"]);
-    expect(res.setHeader).not.toHaveBeenCalledWith("Access-Control-Allow-Origin", expect.anything());
+  it("should return 'forbidden' when origin is not allowed", () => {
+    const result = evaluateCors(makeReq("https://other.com"), ["https://example.com"]);
+    expect(result.outcome).toBe("forbidden");
+    expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
   });
 
-  it("should return 'preflight' and 204 on OPTIONS from allowed origin", () => {
-    const req = makeReq("https://example.com", "OPTIONS");
-    const res = makeRes();
-    const result = setCorsHeaders(req, res, ["https://example.com"]);
-    expect(res.status).toHaveBeenCalledWith(204);
-    expect(res.end).toHaveBeenCalled();
-    expect(result).toBe("preflight");
+  it("should return 'preflight' with 204 on OPTIONS from allowed origin", () => {
+    const result = evaluateCors(makeReq("https://example.com", "OPTIONS"), ["https://example.com"]);
+    expect(result.outcome).toBe("preflight");
+    expect(result.status).toBe(204);
   });
 
-  it("should return 'preflight' and 403 on OPTIONS from a disallowed origin" , () => {
-    const req = makeReq("https://other.com", "OPTIONS");
-    const res = makeRes();
-    const result = setCorsHeaders(req, res, ["https://example.com"]);
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.setHeader).not.toHaveBeenCalledWith("Access-Control-Allow-Origin", expect.anything());
-    expect(res.end).toHaveBeenCalled();
-    expect(result).toBe("preflight");
-  });
-
-  it("should return 'forbidden' on non-OPTIONS requests from disallowed origin", () => {
-    const req = makeReq("https://example.com", "POST");
-    const res = makeRes();
-    expect(setCorsHeaders(req, res, ["https://other.com"])).toBe("forbidden");
-  });
-
-  it("should return 'ok' on allowed POST request", () => {
-    const req = makeReq("https://example.com", "POST");
-    const res = makeRes();
-    expect(setCorsHeaders(req, res, ["https://example.com"])).toBe("ok");
+  it("should return 'preflight' with 403 on OPTIONS from disallowed origin", () => {
+    const result = evaluateCors(makeReq("https://other.com", "OPTIONS"), ["https://example.com"]);
+    expect(result.outcome).toBe("preflight");
+    expect(result.status).toBe(403);
+    expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
   });
 
   it("should return 'forbidden' when allowedOrigins is empty", () => {
-    const req = makeReq("https://example.com", "POST");
-    const res = makeRes();
-    expect(setCorsHeaders(req, res, [])).toBe("forbidden");
+    expect(evaluateCors(makeReq("https://example.com"), []).outcome).toBe("forbidden");
   });
 });

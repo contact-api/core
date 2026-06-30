@@ -1,5 +1,5 @@
 import type { EmailProvider, EmailPayload, EmailBody } from "./types.js";
-import type { Config                                 } from "./config.js";
+import type { Config } from "./config.js";
 
 export interface EmailConfig {
   provider: EmailProvider;

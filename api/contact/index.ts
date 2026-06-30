@@ -1,14 +1,23 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { checkRateLimit } from "@vercel/firewall"
-import { setCorsHeaders } from "../../src/cors.js";
-import { isValidBody } from "../../src/validation.js";
-import { getEmailConfig, sendEmail } from "../../src/email.js";
-import { config } from "../../src/config.js";
+import { checkRateLimit }                     from "@vercel/firewall"
+import { evaluateCors }                       from "../../src/cors.js";
+import { isValidBody }                        from "../../src/validation.js";
+import { getEmailConfig, sendEmail }          from "../../src/email.js";
+import { config }                             from "../../src/config.js";
 
 export default async (req: VercelRequest, res: VercelResponse): Promise<void> => {
-  const cors = setCorsHeaders(req, res, config.allowedOrigins);
-  if (cors === "preflight") return;
-  if (cors === "forbidden") {
+  const corsResult = evaluateCors(
+    { method: req.method ?? "", headers: req.headers as Record<string, string | undefined>, body: req.body },
+    config.allowedOrigins
+  );
+
+  for (const [key, value] of Object.entries(corsResult.headers)) res.setHeader(key, value);
+
+  if (corsResult.outcome === "preflight") {
+    res.status(corsResult.status!).end();
+    return;
+  }
+  if (corsResult.outcome === "forbidden") {
     res.status(403).json({ error: "Forbidden" });
     return;
   }

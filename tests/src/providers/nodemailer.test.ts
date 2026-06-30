@@ -3,7 +3,6 @@ import nodemailer from "nodemailer";
 import { NodemailerProvider } from "../../../src/providers/nodemailer.js";
 import type { EmailPayload } from "../../../src/types.js";
 
-
 vi.mock("nodemailer", () => {
   const mockSend = vi.fn();
   const mockCreateTransport = vi.fn().mockImplementation(() => ({

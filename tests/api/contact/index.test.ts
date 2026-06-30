@@ -2,13 +2,13 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 vi.mock("@vercel/firewall", () => ({ checkRateLimit: vi.fn() }));
-vi.mock("../../../src/cors.js", () => ({ setCorsHeaders: vi.fn() }));
+vi.mock("../../../src/cors.js", () => ({ evaluateCors: vi.fn() }));
 vi.mock("../../../src/validation.js", () => ({ isValidBody: vi.fn() }));
 vi.mock("../../../src/email.js", () => ({ getEmailConfig: vi.fn(), sendEmail: vi.fn() }));
 vi.mock("../../../src/config.js", () => ({ config: { allowedOrigins: ["https://example.com"] } }));
 
 import { checkRateLimit } from "@vercel/firewall";
-import { setCorsHeaders } from "../../../src/cors.js";
+import { evaluateCors } from "../../../src/cors.js";
 import { isValidBody } from "../../../src/validation.js";
 import { getEmailConfig, sendEmail } from "../../../src/email.js";
 import handler from "../../../api/contact/index.js";
@@ -22,6 +22,7 @@ const makeReq = (overrides: Partial<VercelRequest> = {}): VercelRequest => ({
 
 const makeRes = (): VercelResponse => {
   const res = {
+    setHeader: vi.fn(),
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
     end: vi.fn().mockReturnThis(),
@@ -32,24 +33,24 @@ const makeRes = (): VercelResponse => {
 describe("contact handler (index.ts)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(setCorsHeaders).mockReturnValue("ok");
+    vi.mocked(evaluateCors).mockReturnValue({ outcome: "ok", headers: {} });
     vi.mocked(checkRateLimit).mockResolvedValue({ rateLimited: false } as any);
     vi.mocked(getEmailConfig).mockReturnValue({ provider: {} as any, from: "from@test.com", to: ["to@test.com"] });
     vi.mocked(isValidBody).mockReturnValue(true);
     vi.mocked(sendEmail).mockResolvedValue(undefined);
   });
 
-  it("returns early when setCorsHeaders returns 'preflight'", async () => {
-    vi.mocked(setCorsHeaders).mockReturnValue("preflight");
+  it("returns early when evaluateCors returns 'preflight'", async () => {
+    vi.mocked(evaluateCors).mockReturnValue({ outcome: "preflight", headers: {}, status: 204 });
     const req = makeReq({ method: "OPTIONS" });
     const res = makeRes();
     await handler(req, res);
-    expect(res.status).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(204);
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
-  it("returns 403 when setCorsHeaders returns 'forbidden'", async () => {
-    vi.mocked(setCorsHeaders).mockReturnValue("forbidden");
+  it("returns 403 when evaluateCors returns 'forbidden'", async () => {
+    vi.mocked(evaluateCors).mockReturnValue({ outcome: "forbidden", headers: {} });
     const res = makeRes();
     await handler(makeReq(), res);
     expect(res.status).toHaveBeenCalledWith(403);

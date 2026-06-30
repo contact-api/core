@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Resend } from "resend";
-import { createResendProvider, ResendProvider } from "../../nodemailer/resend.js";
+import { createResendProvider, ResendProvider } from "../../resend/index.js";
 import type { EmailPayload } from "../../core/types.js";
 
 vi.mock("resend", () => {

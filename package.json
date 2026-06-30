@@ -1,28 +1,57 @@
 {
   "name": "@contact-api/core",
-  "type": "module",
-  "version": "0.0.1",
   "description": "Contact form logic for the contact-api ecosystem",
   "author": "Mason L'Etoile",
+  "version": "0.0.1",
   "license": "MIT",
-  "exports": {
-    "./types": "./src/types.js",
-    "./email": "./src/email.js",
-    "./contact": "./src/contact.js",
-    "./cors": "./src/cors.js",
-    "./handler": "./src/handler.js",
-    "./validation": "./src/validation.js"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/contact-api/core.git"
   },
+  "homepage": "https://github.com/contact-api/core#readme",
+  "bugs": { "url": "https://github.com/contact-api/core/issues" },
+  "keywords": ["contact-form", "cors", "validation", "honeypot", "typescript", "contact-api"],
+  "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "build": "tsdown",
+    "prepare": "npm run build"
+  },
+  "files": ["dist"],
+  "exports": {
+    "./types": {
+      "types": "./dist/types.d.mts",
+      "import": "./dist/types.mjs"
+    },
+    "./email": {
+      "types": "./dist/email.d.mts",
+      "import": "./dist/email.mjs"
+    },
+    "./contact": {
+      "types": "./dist/contact.d.mts",
+      "import": "./dist/contact.mjs"
+    },
+    "./cors": {
+      "types": "./dist/cors.d.mts",
+      "import": "./dist/cors.mjs"
+    },
+    "./handler": {
+      "types": "./dist/handler.d.mts",
+      "import": "./dist/handler.mjs"
+    },
+    "./validation": {
+      "types": "./dist/validation.d.mts",
+      "import": "./dist/validation.mjs"
+    }
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
     "@vitest/coverage-v8": "^4.1.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.0",
+    "tsdown": "^0.22.0"
   }
 }

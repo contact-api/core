@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import type { EmailProvider, EmailPayload } from "../types.js";
+import type { EmailProvider, EmailPayload } from "../core/types.js";
 
 export class NodemailerProvider implements EmailProvider {
   readonly id = "nodemailer";
@@ -18,5 +18,18 @@ export class NodemailerProvider implements EmailProvider {
       subject: payload.subject,
       text: payload.text
     });
+  }
+}
+
+export function createNodemailerProvider(): EmailProvider | null {
+  const smtpConfig = process.env["SMTP_CONFIG"];
+  if (!smtpConfig) {
+    console.warn("SMTP_CONFIG missing for nodemailer");
+    return null;
+  }
+  try { return new NodemailerProvider(smtpConfig); }
+  catch (e) {
+    console.error("Failed to initialize Nodemailer provider:", e);
+    return null;
   }
 }

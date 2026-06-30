@@ -1,8 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import nodemailer from "nodemailer";
-import { NodemailerProvider } from "../../../src/providers/nodemailer.js";
-import type { EmailPayload } from "../../../src/types.js";
-
+import { createNodemailerProvider, NodemailerProvider } from "../../nodemailer/index.js";
+import type { EmailPayload } from "../../core/types.js";
 
 vi.mock("nodemailer", () => {
   const mockSend = vi.fn();
@@ -68,3 +67,31 @@ describe("NodemailerProvider", () => {
     expect(() => new NodemailerProvider("{bad json")).toThrow();
   })
 })
+
+describe("createNodemailerProvider", () => {
+  const originalEnv = process.env;
+  beforeEach(() => { process.env = { ...originalEnv }; });
+  afterEach(() => { process.env = originalEnv; });
+
+  it("returns null and warns when SMTP_CONFIG is missing", () => {
+    delete process.env["SMTP_CONFIG"];
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(createNodemailerProvider()).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith("SMTP_CONFIG missing for nodemailer");
+    warnSpy.mockRestore();
+  });
+
+  it("returns null and logs an error when SMTP_CONFIG is invalid JSON", () => {
+    process.env["SMTP_CONFIG"] = "{not valid json";
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(createNodemailerProvider()).toBeNull();
+    expect(errorSpy).toHaveBeenCalledWith("Failed to initialize Nodemailer provider:", expect.any(Error));
+    errorSpy.mockRestore();
+  });
+
+  it("returns a NodemailerProvider instance when SMTP_CONFIG is valid", () => {
+    process.env["SMTP_CONFIG"] = JSON.stringify({ host: "smtp.test.com", port: 587, auth: { user: "u", pass: "p" } });
+    const provider = createNodemailerProvider();
+    expect(provider).toBeInstanceOf(NodemailerProvider);
+  });
+});

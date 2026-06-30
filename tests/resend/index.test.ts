@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Resend } from "resend";
-import { ResendProvider } from "../../../src/providers/resend.js";
-import type { EmailPayload } from "../../../src/types.js";
+import { createResendProvider, ResendProvider } from "../../resend/index.js";
+import type { EmailPayload } from "../../core/types.js";
 
 vi.mock("resend", () => {
   const mockSend = vi.fn();
@@ -66,5 +66,25 @@ describe("ResendProvider", () => {
     expect(consoleSpy).toHaveBeenCalledWith("Resend API error:", mockError);
 
     consoleSpy.mockRestore();
+  });
+});
+
+describe("createResendProvider", () => {
+  const originalEnv = process.env;
+  beforeEach(() => { process.env = { ...originalEnv }; });
+  afterEach(() => { process.env = originalEnv; });
+
+  it("returns null and warns when RESEND_API_KEY is missing", () => {
+    delete process.env["RESEND_API_KEY"];
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(createResendProvider()).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith("RESEND_API_KEY missing for resend");
+    warnSpy.mockRestore();
+  });
+
+  it("returns a ResendProvider instance when RESEND_API_KEY is set", () => {
+    process.env["RESEND_API_KEY"] = "test-key";
+    const provider = createResendProvider();
+    expect(provider).toBeInstanceOf(ResendProvider);
   });
 });

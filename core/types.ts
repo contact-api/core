@@ -1,4 +1,4 @@
-export interface ContactBody {
+export interface EmailBody {
   email: string;
   message: string;
   subject?: string;

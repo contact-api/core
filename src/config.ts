@@ -1,6 +1,6 @@
-import type { EmailProvider } from "./types.js";
-import { ResendProvider     } from "./providers/resend.js";
-import { NodemailerProvider } from "./providers/nodemailer.js";
+import { createNodemailerProvider } from "./providers/nodemailer.js";
+import { createResendProvider     } from "./providers/resend.js";
+import type { EmailProvider       } from "./types.js";
 
 export interface Config {
   provider: EmailProvider | null;
@@ -17,40 +17,9 @@ const allowedOrigins = allowedOriginsRaw.split(",").map(o => o.trim()).filter(Bo
 
 function createProvider(): EmailProvider | null {
   const providerName = process.env["EMAIL_PROVIDER"]?.toLowerCase();
-  if (!providerName) {
-    console.error("EMAIL_PROVIDER is not set");
-    return null;
-  }
-
-  if (providerName === "resend") {
-    const apiKey = process.env["RESEND_API_KEY"];
-    if (!apiKey) {
-      console.warn("RESEND_API_KEY missing for resend");
-      return null;
-    }
-
-    try { return new ResendProvider(apiKey); }
-    catch (e) {
-      console.error("Failed to initialize Resend provider:", e);
-      return null;
-    }
-  }
-
-  if (providerName === "nodemailer") {
-    const smtpConfig = process.env["SMTP_CONFIG"];
-    if (!smtpConfig) {
-      console.warn("SMTP_CONFIG missing for nodemailer");
-      return null;
-    }
-
-    try { return new NodemailerProvider(smtpConfig); }
-    catch (e) {
-      console.error("Failed to initialize Nodemailer provider:", e);
-      return null;
-    }
-  }
-
-  console.warn(`Unknown EMAIL_PROVIDER: "${providerName}"`);
+  if (providerName === "resend") return createResendProvider();
+  if (providerName === "nodemailer") return createNodemailerProvider();
+  console.warn(providerName ? `Unknown EMAIL_PROVIDER: "${providerName}"` : "EMAIL_PROVIDER is not set");
   return null;
 }
 

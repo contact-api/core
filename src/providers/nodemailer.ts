@@ -20,3 +20,16 @@ export class NodemailerProvider implements EmailProvider {
     });
   }
 }
+
+export function createNodemailerProvider(): EmailProvider | null {
+  const smtpConfig = process.env["SMTP_CONFIG"];
+  if (!smtpConfig) {
+    console.warn("SMTP_CONFIG missing for nodemailer");
+    return null;
+  }
+  try { return new NodemailerProvider(smtpConfig); }
+  catch (e) {
+    console.error("Failed to initialize Nodemailer provider:", e);
+    return null;
+  }
+}

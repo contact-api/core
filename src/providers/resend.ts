@@ -17,3 +17,16 @@ export class ResendProvider implements EmailProvider {
     }
   }
 }
+
+export function createResendProvider(): EmailProvider | null {
+  const apiKey = process.env["RESEND_API_KEY"];
+  if (!apiKey) {
+    console.warn("RESEND_API_KEY missing for resend");
+    return null;
+  }
+  try { return new ResendProvider(apiKey); }
+  catch (e) {
+    console.error("Failed to initialize Resend provider:", e);
+    return null;
+  }
+}

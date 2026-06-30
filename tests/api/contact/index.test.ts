@@ -3,32 +3,29 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 vi.mock("@vercel/firewall", () => ({ checkRateLimit: vi.fn() }));
 vi.mock("../../../src/cors.js", () => ({ evaluateCors: vi.fn() }));
-vi.mock("../../../src/validation.js", () => ({ isValidBody: vi.fn() }));
-vi.mock("../../../src/email.js", () => ({ getEmailConfig: vi.fn(), sendEmail: vi.fn() }));
+vi.mock("../../../src/handler.js", () => ({ handleContact: vi.fn() }));
+vi.mock("../../../src/email.js", () => ({ getEmailConfig: vi.fn() }));
 vi.mock("../../../src/config.js", () => ({ config: { allowedOrigins: ["https://example.com"] } }));
 
 import { checkRateLimit } from "@vercel/firewall";
 import { evaluateCors } from "../../../src/cors.js";
-import { isValidBody } from "../../../src/validation.js";
-import { getEmailConfig, sendEmail } from "../../../src/email.js";
+import { handleContact } from "../../../src/handler.js";
+import { getEmailConfig } from "../../../src/email.js";
 import handler from "../../../api/contact/index.js";
 
 const makeReq = (overrides: Partial<VercelRequest> = {}): VercelRequest => ({
   headers: { origin: "https://example.com", "content-type": "application/json" },
   method: "POST",
-  body: { subject: "Hello", email: "user@example.com", message: "HellO" },
+  body: { subject: "Hello", email: "user@example.com", message: "Hello" },
   ...overrides,
 } as unknown as VercelRequest);
 
-const makeRes = (): VercelResponse => {
-  const res = {
-    setHeader: vi.fn(),
-    status: vi.fn().mockReturnThis(),
-    json: vi.fn().mockReturnThis(),
-    end: vi.fn().mockReturnThis(),
-  };
-  return res as unknown as VercelResponse;
-};
+const makeRes = (): VercelResponse => ({
+  setHeader: vi.fn(),
+  status: vi.fn().mockReturnThis(),
+  json: vi.fn().mockReturnThis(),
+  end: vi.fn().mockReturnThis(),
+} as unknown as VercelResponse);
 
 describe("contact handler (index.ts)", () => {
   beforeEach(() => {
@@ -36,25 +33,25 @@ describe("contact handler (index.ts)", () => {
     vi.mocked(evaluateCors).mockReturnValue({ outcome: "ok", headers: {} });
     vi.mocked(checkRateLimit).mockResolvedValue({ rateLimited: false } as any);
     vi.mocked(getEmailConfig).mockReturnValue({ provider: {} as any, from: "from@test.com", to: ["to@test.com"] });
-    vi.mocked(isValidBody).mockReturnValue(true);
-    vi.mocked(sendEmail).mockResolvedValue(undefined);
+    vi.mocked(handleContact).mockResolvedValue({ status: 200, body: { success: true, message: "Message sent successfully" } });
   });
 
-  it("returns early when evaluateCors returns 'preflight'", async () => {
-    vi.mocked(evaluateCors).mockReturnValue({ outcome: "preflight", headers: {}, status: 204 });
-    const req = makeReq({ method: "OPTIONS" });
+  it("applies cors headers and returns early on 'preflight'", async () => {
+    vi.mocked(evaluateCors).mockReturnValue({ outcome: "preflight", headers: { "X-Foo": "bar" }, status: 204 });
     const res = makeRes();
-    await handler(req, res);
+    await handler(makeReq({ method: "OPTIONS" }), res);
+    expect(res.setHeader).toHaveBeenCalledWith("X-Foo", "bar");
     expect(res.status).toHaveBeenCalledWith(204);
-    expect(sendEmail).not.toHaveBeenCalled();
+    expect(handleContact).not.toHaveBeenCalled();
   });
 
-  it("returns 403 when evaluateCors returns 'forbidden'", async () => {
+  it("returns 403 on 'forbidden'", async () => {
     vi.mocked(evaluateCors).mockReturnValue({ outcome: "forbidden", headers: {} });
     const res = makeRes();
     await handler(makeReq(), res);
     expect(res.status).toHaveBeenCalledWith(403);
     expect(res.json).toHaveBeenCalledWith({ error: "Forbidden" });
+    expect(handleContact).not.toHaveBeenCalled();
   });
 
   it("returns 429 when rate limited", async () => {
@@ -62,60 +59,23 @@ describe("contact handler (index.ts)", () => {
     const res = makeRes();
     await handler(makeReq(), res);
     expect(res.status).toHaveBeenCalledWith(429);
+    expect(handleContact).not.toHaveBeenCalled();
   });
 
-  it("returns 405 when method is not POST", async () => {
-    const res = makeRes();
-    await handler(makeReq({ method: "GET" }), res);
-    expect(res.status).toHaveBeenCalledWith(405);
-  });
-
-  it("returns 415 when content-type is not application/json", async () => {
-    const res = makeRes();
-    await handler(makeReq({ headers: { origin: "https://example.com", "content-type": "text/plain" } }), res);
-    expect(res.status).toHaveBeenCalledWith(415);
-  });
-
-  it("returns 503 when server is misconfigured", async () => {
-    vi.mocked(getEmailConfig).mockReturnValue(null);
+  it("delegates to handleContact and writes its result", async () => {
+    vi.mocked(handleContact).mockResolvedValue({ status: 400, body: { error: "Invalid or missing fields" } });
     const res = makeRes();
     await handler(makeReq(), res);
-    expect(res.status).toHaveBeenCalledWith(503);
-    expect(res.json).toHaveBeenCalledWith({ error: "Service temporarily unavailable" });
-  });
-
-  it("returns fake success and does not send email when honeypot is triggered", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const req = makeReq({ body: { subject: "Hi", email: "user@example.com", message: "Hello", fax_number: "1234567890" } });
-    const res = makeRes();
-    await handler(req, res);
-    expect(sendEmail).not.toHaveBeenCalled();
-    expect(res.json).toHaveBeenCalledWith({ success: true, message: "Message sent successfully" });
-    warnSpy.mockRestore();
-  });
-
-  it("returns 400 when body is invalid", async () => {
-    vi.mocked(isValidBody).mockReturnValue(false);
-    const res = makeRes();
-    await handler(makeReq(), res);
+    expect(handleContact).toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ error: "Invalid or missing fields" });
   });
 
-  it("returns success when email sends successfully", async () => {
+  it("calls res.end() when handleContact returns null body", async () => {
+    vi.mocked(handleContact).mockResolvedValue({ status: 204, body: null });
     const res = makeRes();
     await handler(makeReq(), res);
-    expect(sendEmail).toHaveBeenCalled();
-    expect(res.json).toHaveBeenCalledWith({ success: true, message: "Message sent successfully" });
-  });
-
-  it("returns 500 when sendEmail throws", async () => {
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    vi.mocked(sendEmail).mockRejectedValue(new Error("Failure"));
-    const res = makeRes();
-    await handler(makeReq(), res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "Message delivery failed. Please try again later" });
-    errorSpy.mockRestore();
+    expect(res.end).toHaveBeenCalled();
+    expect(res.json).not.toHaveBeenCalled();
   });
 });

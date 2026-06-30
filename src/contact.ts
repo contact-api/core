@@ -7,5 +7,4 @@ export interface ContactRequest {
 export interface ContactResult {
   status: number;
   body: unknown;
-  headers?: Record<string, string>;
 }

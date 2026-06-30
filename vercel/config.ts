@@ -1,6 +1,7 @@
-import { createNodemailerProvider } from "./providers/nodemailer.js";
-import { createResendProvider     } from "./providers/resend.js";
-import type { EmailProvider       } from "./types.js";
+import type { EmailProvider       } from "../core/types.js";
+import type { EmailConfig } from "../core/email.js";
+import { createNodemailerProvider } from "../providers/nodemailer.js";
+import { createResendProvider     } from "../providers/resend.js";
 
 export interface Config {
   provider: EmailProvider | null;
@@ -30,3 +31,7 @@ export const config: Config = {
   allowedOrigins
 }
 
+export function getEmailConfig(config: Config): EmailConfig | null {
+  if (!config.provider || !config.fromEmail?.trim() || !config.toEmails?.length) return null;
+  return { provider: config.provider, from: config.fromEmail, to: config.toEmails };
+}

@@ -1,12 +1,12 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { handleContact } from "../../src/handler.js";
-import { isValidBody } from "../../src/validation.js";
-import { sendEmail } from "../../src/email.js";
-import type { ContactRequest } from "../../src/contact.js";
-import type { EmailConfig } from "../../src/email.js";
+import { handleContact } from "../../core/handler.js";
+import { isValidBody } from "../../core/validation.js";
+import { sendEmail } from "../../core/email.js";
+import type { ContactRequest } from "../../core/contact.js";
+import type { EmailConfig } from "../../core/email.js";
 
-vi.mock("../../src/validation.js", () => ({ isValidBody: vi.fn() }));
-vi.mock("../../src/email.js", () => ({ sendEmail: vi.fn() }));
+vi.mock("../../core/validation.js", () => ({ isValidBody: vi.fn() }));
+vi.mock("../../core/email.js", () => ({ sendEmail: vi.fn() }));
 
 const makeReq = (overrides: Partial<ContactRequest> = {}): ContactRequest => ({
   method: "POST",

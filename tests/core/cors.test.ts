@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { evaluateCors } from "../../src/cors.js";
-import type { ContactRequest } from "../../src/contact.js";
+import { evaluateCors } from "../../core/cors.js";
+import type { ContactRequest } from "../../core/contact.js";
 
 const makeReq = (origin?: string, method = "POST"): ContactRequest => ({
   method,

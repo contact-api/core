@@ -2,16 +2,18 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 vi.mock("@vercel/firewall", () => ({ checkRateLimit: vi.fn() }));
-vi.mock("../../../src/cors.js", () => ({ evaluateCors: vi.fn() }));
-vi.mock("../../../src/handler.js", () => ({ handleContact: vi.fn() }));
-vi.mock("../../../src/email.js", () => ({ getEmailConfig: vi.fn() }));
-vi.mock("../../../src/config.js", () => ({ config: { allowedOrigins: ["https://example.com"] } }));
+vi.mock("../../../../core/cors.js", () => ({ evaluateCors: vi.fn() }));
+vi.mock("../../../../core/handler.js", () => ({ handleContact: vi.fn() }));
+vi.mock("../../../../vercel/config.js", () => ({
+  getEmailConfig: vi.fn(),
+  config: { allowedOrigins: ["https://example.com"] }
+}));
 
 import { checkRateLimit } from "@vercel/firewall";
-import { evaluateCors } from "../../../src/cors.js";
-import { handleContact } from "../../../src/handler.js";
-import { getEmailConfig } from "../../../src/email.js";
-import handler from "../../../api/contact/index.js";
+import { evaluateCors } from "../../../../core/cors.js";
+import { handleContact } from "../../../../core/handler.js";
+import handler from "../../../../vercel/api/contact/index.js";
+import { getEmailConfig } from "../../../../vercel/config.js";
 
 const makeReq = (overrides: Partial<VercelRequest> = {}): VercelRequest => ({
   headers: { origin: "https://example.com", "content-type": "application/json" },

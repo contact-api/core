@@ -46,9 +46,10 @@
     "noEmit": true
   },
   "include": [
-    "./api/**/*.ts",
-    "./src/**/*.ts",
-    "./tests/**/*.ts"
+    "./core/**/*.ts",
+    "./providers/**/*.ts",
+    "./vercel/**/*.ts",
+    "./tests/**/*.ts",
   ],
   "exclude": [
     "dist/",

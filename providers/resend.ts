@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import type { EmailProvider, EmailPayload } from "../types.js";
+import type { EmailProvider, EmailPayload } from "../core/types.js";
 
 export class ResendProvider implements EmailProvider {
   readonly id = "resend";

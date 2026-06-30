@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import nodemailer from "nodemailer";
-import { createNodemailerProvider, NodemailerProvider } from "../../../src/providers/nodemailer.js";
-import type { EmailPayload } from "../../../src/types.js";
+import { createNodemailerProvider, NodemailerProvider } from "../../providers/nodemailer.js";
+import type { EmailPayload } from "../../core/types.js";
 
 vi.mock("nodemailer", () => {
   const mockSend = vi.fn();

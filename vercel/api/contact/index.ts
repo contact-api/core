@@ -1,9 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { checkRateLimit } from "@vercel/firewall";
-import { evaluateCors } from "../../src/cors.js";
-import { handleContact } from "../../src/handler.js";
-import { getEmailConfig } from "../../src/email.js";
-import { config } from "../../src/config.js";
+import { evaluateCors } from "../../../core/cors.js";
+import { handleContact } from "../../../core/handler.js";
+import { getEmailConfig, config } from "../../../vercel/config.js";
 
 export default async (req: VercelRequest, res: VercelResponse): Promise<void> => {
   const cors = evaluateCors(

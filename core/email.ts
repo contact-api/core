@@ -1,19 +1,9 @@
 import type { EmailProvider, EmailPayload, EmailBody } from "./types.js";
-import type { Config } from "./config.js";
 
 export interface EmailConfig {
   provider: EmailProvider;
   from: string;
   to: string[];
-}
-
-export function getEmailConfig(config: Config): EmailConfig | null {
-  if (
-    !config.provider || 
-    !config.fromEmail?.trim() || 
-    !config.toEmails?.length 
-  ) return null;
-  return { provider: config.provider, from: config.fromEmail, to: config.toEmails };
 }
 
 export async function sendEmail(

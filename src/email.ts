@@ -1,5 +1,5 @@
-import type { EmailProvider, EmailPayload, ContactBody } from "./types.js";
-import type { Config } from "./config.js";
+import type { EmailProvider, EmailPayload, EmailBody } from "./types.js";
+import type { Config                                 } from "./config.js";
 
 export interface EmailConfig {
   provider: EmailProvider;
@@ -17,8 +17,8 @@ export function getEmailConfig(config: Config): EmailConfig | null {
 }
 
 export async function sendEmail(
-  config: EmailConfig, 
-  body: ContactBody
+  config: EmailConfig,
+  body: EmailBody
 ): Promise<void> {
   const safeSubject = body.subject?.replace(/[\r\n]+/g, " ").trim() ?? "New message";
   const safeName = body.name?.replace(/[\r\n]+/g, " ").trim();

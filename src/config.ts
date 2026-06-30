@@ -1,5 +1,5 @@
 import type { EmailProvider } from "./types.js";
-import { ResendProvider } from "./providers/resend.js";
+import { ResendProvider     } from "./providers/resend.js";
 import { NodemailerProvider } from "./providers/nodemailer.js";
 
 export interface Config {

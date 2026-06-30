@@ -1,8 +1,8 @@
-import type { ContactBody } from "./types.js";
+import type { EmailBody } from "./types.js";
 
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function isValidBody(body: unknown): body is ContactBody {
+export function isValidBody(body: unknown): body is EmailBody {
   if (body === null || typeof body !== "object") return false;
   const record = body as Record<string, unknown>;
   const { email, message, subject, name, fax_number } = record;

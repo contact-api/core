@@ -47,7 +47,8 @@
   },
   "include": [
     "./core/**/*.ts",
-    "./providers/**/*.ts",
+    "./nodemailer/**/*.ts",
+    "./resend/**/*.ts",
     "./vercel/**/*.ts",
     "./tests/**/*.ts",
   ],

@@ -7,9 +7,9 @@ on:
 
 jobs:
   test:
-    uses: contact-api/.github/.github/workflows/test.yml@v1.0.0
+    uses: contact-api/.github/.github/workflows/test.yml@v1.0.1
 
   publish:
     needs: test
-    uses: contact-api/.github/.github/workflows/publish.yml@v1.0.0
+    uses: contact-api/.github/.github/workflows/publish.yml@v1.0.1
     secrets: inherit
